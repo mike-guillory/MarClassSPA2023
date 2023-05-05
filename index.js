@@ -3,11 +3,6 @@ import * as store from "./store";
 import Navigo from "navigo";
 import { capitalize } from "lodash";
 import axios from "axios";
-import dotenv from "dotenv";
-
-// Make sure that dotenv.config(); is placed after all of you import statements
-dotenv.config();
-const router = new Navigo("/");
 
 function render(state = store.Home) {
   document.querySelector("#root").innerHTML = `
@@ -50,7 +45,7 @@ router.hooks({
             done();
           })
           .catch((error) => {
-            console.log("It pucked", error);
+            console.log("It puked", error);
             done();
           });
           break;
