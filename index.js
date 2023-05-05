@@ -15,7 +15,7 @@ function render(state = store.Home) {
     afterRender(state);
     
     router.updatePageLinks();
-  }
+  };
 
   // add menu toggle to bars icon in nav bar
   function afterRender(state){
