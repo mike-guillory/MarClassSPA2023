@@ -3,10 +3,7 @@ import * as store from "./store";
 import Navigo from "navigo";
 import { capitalize } from "lodash";
 import axios from "axios";
-import dotenv from "dotenv";
 
-// Make sure that dotenv.config(); is placed after all of you import statements
-dotenv.config();
 const router = new Navigo("/");
 
 function render(state = store.Home) {
@@ -31,10 +28,12 @@ function render(state = store.Home) {
 
 router.hooks({
   before: (done, params) => {
+    // console.log(`in before ${Date.now()}`);
     const view = params && params.data && params.data.view ? capitalize(params.data.view) : "Home";
     // Add a switch case statement to handle multiple routes
     switch (view) {
       case "Home":
+        // New Axios get request utilizing already made environment variable
         axios
           .get(`https://api.openweathermap.org/data/2.5/weather?appid=${process.env.OPEN_WEATHER_MAP_API_KEY}&q=st%20louis`)
           .then(response => {
@@ -55,8 +54,6 @@ router.hooks({
           });
           break;
       case "Pizza":
-        console.log((`${process.env.PIZZA_PLACE_API_URL}/pizzas`));
-        // New Axios get request utilizing already made environment variable
         axios
           .get(`${process.env.PIZZA_PLACE_API_URL}/pizzas`)
           .then(response => {
@@ -75,9 +72,10 @@ router.hooks({
     }
   },
   already: (params) => {
+    // console.log((`in already ${Date.now()}`));
     const view = params && params.data && params.data.view ? capitalize(params.data.view) : "Home";
 
-    render(store[view]);
+    // render(store[view]);
   }
 });
 
@@ -93,5 +91,7 @@ router
         render(store.Viewnotfound);
       }
     },
-  })
+  },
+      // console.log((`in router.on ${Date.now()}`)),
+  )
   .resolve();
