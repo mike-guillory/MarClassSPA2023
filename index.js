@@ -3,10 +3,7 @@ import * as store from "./store";
 import Navigo from "navigo";
 import { capitalize } from "lodash";
 import axios from "axios";
-import dotenv from "dotenv";
 
-// Make sure that dotenv.config(); is placed after all of you import statements
-dotenv.config();
 const router = new Navigo("/");
 
 function render(state = store.Home) {
@@ -18,7 +15,7 @@ function render(state = store.Home) {
     `;
 
     afterRender(state);
-    
+
     router.updatePageLinks();
   }
 
@@ -27,14 +24,56 @@ function render(state = store.Home) {
     document.querySelector(".fa-bars").addEventListener("click", () => {
       document.querySelector("nav > ul").classList.toggle("hidden--mobile");
     });
+
+    // Event listener on the Pizza order form to submit pizza order
+    if (state.view === "Order") {
+      document.querySelector("form").addEventListener("submit", event => {
+        event.preventDefault();
+
+        const inputList = event.target.elements;
+        console.log("Input Element List", inputList);
+
+        const toppings = [];
+        // Iterate over the toppings input group elements
+        for (let input of inputList.toppings) {
+          // If the value of the checked attribute is true then add the value to the toppings array
+          if (input.checked) {
+            toppings.push(input.value);
+          }
+        }
+
+        const requestData = {
+          customer: inputList.customer.value,
+          crust: inputList.crust.value,
+          cheese: inputList.cheese.value,
+          sauce: inputList.sauce.value,
+          toppings: toppings
+        };
+        console.log("request Body", requestData);
+
+        axios
+          .post(`${process.env.PIZZA_PLACE_API_URL}/pizzas`, requestData)
+          .then(response => {
+            // Push the new pizza onto the Pizza state pizzas attribute, so it can be displayed in the pizza list
+            store.Pizza.pizzas.push(response.data);
+            // Go to Pizza page
+            router.navigate("/Pizza");
+          })
+          .catch(error => {
+            console.log("It puked", error);
+          });
+      });
+    }
   }
 
 router.hooks({
   before: (done, params) => {
+    // console.log(`in before ${Date.now()}`);
     const view = params && params.data && params.data.view ? capitalize(params.data.view) : "Home";
     // Add a switch case statement to handle multiple routes
     switch (view) {
       case "Home":
+        // New Axios get request utilizing already made environment variable
         axios
           .get(`https://api.openweathermap.org/data/2.5/weather?appid=${process.env.OPEN_WEATHER_MAP_API_KEY}&q=st%20louis`)
           .then(response => {
@@ -55,8 +94,6 @@ router.hooks({
           });
           break;
       case "Pizza":
-        console.log((`${process.env.PIZZA_PLACE_API_URL}/pizzas`));
-        // New Axios get request utilizing already made environment variable
         axios
           .get(`${process.env.PIZZA_PLACE_API_URL}/pizzas`)
           .then(response => {
@@ -75,9 +112,10 @@ router.hooks({
     }
   },
   already: (params) => {
+    // console.log((`in already ${Date.now()}`));
     const view = params && params.data && params.data.view ? capitalize(params.data.view) : "Home";
 
-    render(store[view]);
+    // render(store[view]);
   }
 });
 
@@ -93,5 +131,7 @@ router
         render(store.Viewnotfound);
       }
     },
-  })
+  },
+      // console.log((`in router.on ${Date.now()}`)),
+  )
   .resolve();
